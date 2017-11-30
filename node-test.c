@@ -4,7 +4,8 @@
 
 int main() {
     node* n0 = node_new(5);
-    assert(sizeof(node) == sizeof(n0->l) + sizeof(n0->r) + sizeof(n0->p) + sizeof(n0->d));
+    assert(sizeof(node) == sizeof(n0->l) + sizeof(n0->r) + sizeof(n0->p) + sizeof(n0->d) + sizeof(n0->b));
+    assert(n0->b == 0);
     assert(n0->d == 5);
     assert(n0->l == NULL);
     assert(n0->r == NULL);

@@ -8,5 +8,6 @@ node* node_new(long d) {
     n->r = NULL;
     n->p = NULL;
     n->d = d;
+    n->b = 0;
     return n;
 }

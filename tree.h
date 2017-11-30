@@ -19,4 +19,22 @@ node* tree_remove(node* n, long d);
 */
 node* tree_search(node* n, long d);
 
+/*
+    free all the nodes in the tree
+*/
+void _tree_free_N(node* n);
+
+#ifdef _UNIT_TEST
+#define STATIC
+#else
+#define STATIC static
+#endif
+
+#ifdef _UNIT_TEST
+void _insert_update_b(node* node);
+void _remove_no_right_children(node* node);
+void _remove_right_no_left(node* node);
+void _remove_complex(node* node);
+#endif
+
 #endif //TREE_H

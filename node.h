@@ -3,10 +3,15 @@
 
 typedef struct node node;
 struct node {
-    node* l;
-    node* r;
-    node* p;
-    long d;
+    node* l; // left
+    node* r; // right
+    node* p; // parent
+    long d; // number
+    /*
+        balance factor
+        height right - height left
+    */
+    unsigned long b;
 };
 
 /*
