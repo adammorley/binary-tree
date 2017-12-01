@@ -32,6 +32,7 @@ void _tree_free_N(node* n);
 
 #ifdef _UNIT_TEST
 void _insert_update_b(node* node);
+void _remove_update_b(node* node);
 void _remove_no_right_children(node* node);
 void _remove_right_no_left(node* node);
 void _remove_complex(node* node);
