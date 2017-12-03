@@ -1,4 +1,7 @@
+#include <assert.h>
+#include <stdbool.h>
 #include <stdlib.h>
+#include "../tree-node/node.h"
 #include "tree.h"
 
 STATIC void _insert_update_b(node* n);
@@ -6,45 +9,83 @@ STATIC void _remove_no_right_children(node* n);
 STATIC void _remove_right_no_left(node* n);
 STATIC void _remove_complex(node* n);
 
-void tree_insert(node* n, long d) {
-    if (n->d == d) return; // noop
-    if (d < n->d && n->l != NULL) return tree_insert(n->l, d);
-    if (d > n->d && n->r != NULL) return tree_insert(n->r, d);
+static node* _get_root(tree* t) {
+    assert(t);
+    return t->r;
+}
+
+static void _insert_node(node* n, long d) {
+    if (d < n->d && n->l != NULL) return _insert_node(n->l, d);
+    if (d > n->d && n->r != NULL) return _insert_node(n->r, d);
     node* c = node_new(d);
     if (d < n->d && n->l == NULL) n->l = c;
     if (d > n->d && n->r == NULL) n->r = c;
     c->p = n;
     _insert_update_b(c);
     //FIXME: rebalance
+    return;
 }
 
-node* tree_remove(node* n, long d) {
-    if (n->p == NULL && n->d == d) {
-        free(n);
-        return NULL;
+void tree_insert(tree* t, long d) {
+    node* n = _get_root(t);
+    if (n == NULL) {
+        t->r = node_new(d);
+        return;
     }
-    node* t = tree_search(n, d);
-    if (t == NULL) return n;
+    if (n->d == d) return; // noop
+    _insert_node(n, d);
+}
 
-    if (t->r == NULL) _remove_no_right_children(t);
-    if (t->r != NULL && t->r->l == NULL) _remove_right_no_left(t);
-    if (t->r != NULL && t->r->l != NULL) _remove_complex(t);
+tree* tree_new() {
+    tree* t = malloc(sizeof(tree));
+    if (t == NULL) assert(true);
+    t->r = NULL;
+    return t;
+}
+
+bool tree_remove(tree* t, long d) {
+    node* n = _get_root(t);
+    if (n == NULL) return false;
+    if (n->d == d) {
+        t->r = NULL;
+        free(n);
+        return true;
+    }
+    n = tree_search(t, d);
+    if (n == NULL) return false;
+
+    if (n->r == NULL) _remove_no_right_children(n);
+    if (n->r != NULL && n->r->l == NULL) _remove_right_no_left(n);
+    if (n->r != NULL && n->r->l != NULL) _remove_complex(n);
     free(t);
     //FIXME: rebalance
-    return n;
+    return true;
 }
 
-node* tree_search(node* n, long d) {
+static node* _tree_search(node* n, long d) {
     if (n->d == d) return n;
-    if (d < n->d && n->l != NULL) return tree_search(n->l, d);
-    if (d > n->d && n->r != NULL) return tree_search(n->r, d);
+    if (d < n->d && n->l != NULL) return _tree_search(n->l, d);
+    if (d > n->d && n->r != NULL) return _tree_search(n->r, d);
     return NULL;
 }
+    
+node* tree_search(tree* t, long d) {
+    node* n = _get_root(t);
+    if (n == NULL) return NULL;
+    return _tree_search(n, d);
+}
 
-void _tree_free_N(node* n) {
-    if (n->l != NULL) _tree_free_N(n->l);
-    if (n->r != NULL) _tree_free_N(n->r);
+static void _tree_node_free(node* n) {
+    if (n->l != NULL) _tree_node_free(n->l);
+    if (n->r != NULL) _tree_node_free(n->r);
     free(n);
+}
+
+void _tree_free_N(tree* t) {
+    node* n = _get_root(t);
+    if (n == NULL) return;
+    _tree_node_free(n);
+    t->r = NULL;
 }
 
 STATIC void _insert_update_b(node* n) {

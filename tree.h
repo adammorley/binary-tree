@@ -4,25 +4,35 @@
 #ifndef TREE_H
 #define TREE_H
 
+typedef struct tree tree;
+struct tree {
+    node* r;
+};
+
 /*
     insert a node or data into a tree
 */
-void tree_insert(node* n, long d);
+void tree_insert(tree* t, long d);
 
 /*
-    remove a value
+    create a tree
 */
-node* tree_remove(node* n, long d);
+tree* tree_new();
+
+/*
+    remove a value, returns bool indicating whether removed
+*/
+bool tree_remove(tree* t, long d);
 
 /*
     search for a value, returns count of times value stored
 */
-node* tree_search(node* n, long d);
+node* tree_search(tree* t, long d);
 
 /*
     free all the nodes in the tree
 */
-void _tree_free_N(node* n);
+void _tree_free_N(tree* t);
 
 #ifdef _UNIT_TEST
 #define STATIC
