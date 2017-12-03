@@ -1,5 +1,5 @@
 CC=/usr/local/Cellar/llvm/5.0.0/bin/clang
-CFLAGS=-I. -g -std=c11
+CFLAGS=-I. -g
 
 all: test
 
