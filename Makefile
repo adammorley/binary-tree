@@ -1,13 +1,10 @@
-CC=/usr/local/Cellar/gcc/7.2.0/bin/gcc-7
-CFLAGS=-I. -g
+CC=/usr/local/Cellar/llvm/5.0.0/bin/clang
+CFLAGS=-I. -g -std=c11
 
-all: node-test tree-test
+all: test
 
 clean:
-	rm -f node-test tree-test
+	rm -f test *.o
 
-node-test: node-test.c node.c
-	$(CC) -o node-test node-test.c node.c $(CFLAGS)
-
-tree-test: tree-test.c tree.c node.c
-	$(CC) -o tree-test tree-test.c tree.c node.c $(CFLAGS) -D_UNIT_TEST=1
+test: test.c tree.c ../tree-node/node.c
+	$(CC) -o test test.c tree.c ../tree-node/node.c $(CFLAGS) -D_UNIT_TEST=1

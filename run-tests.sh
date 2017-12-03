@@ -2,6 +2,5 @@
 
 make clean
 make all
-./node-test && \
-    ./tree-test && \
+./test && \
     echo 'ok'

@@ -1,4 +1,3 @@
-#include <assert.h>
 #include <stdlib.h>
 #include "tree.h"
 
@@ -169,8 +168,8 @@ STATIC void _remove_complex(node* n) {
     // hook it into the right place, updating balance too
     c->p = n->p;
     c->b = n->b;
-    if (n->p->r = n) n->p->r = c;
-    if (n->p->l = n) n->p->r = c;
+    if (n->p->r == n) n->p->r = c;
+    if (n->p->l == n) n->p->r = c;
 
     // update the balance factors up to the node to be removed
     node* t = c;
