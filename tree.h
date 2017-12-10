@@ -19,6 +19,8 @@ void tree_insert(tree* t, long d);
 */
 tree* tree_new();
 
+void tree_print(tree* t);
+
 /*
     remove a value, returns bool indicating whether removed
 */
@@ -34,18 +36,6 @@ node* tree_search(tree* t, long d);
 */
 void _tree_free_N(tree* t);
 
-#ifdef _UNIT_TEST
-#define STATIC
-#else
-#define STATIC static
-#endif
-
-#ifdef _UNIT_TEST
-void _insert_update_b(node* node);
-void _remove_update_b(node* node);
-void _remove_no_right_children(node* node);
-void _remove_right_no_left(node* node);
-void _remove_complex(node* node);
-#endif
+#include "static.h"
 
 #endif //TREE_H
