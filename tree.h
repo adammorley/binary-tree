@@ -32,9 +32,9 @@ bool tree_remove(tree* t, long d);
 node* tree_search(tree* t, long d);
 
 /*
-    free all the nodes in the tree
+    free all the nodes in the tree, and the tree
 */
-void _tree_free_N(tree* t);
+void _tree_free(tree* t);
 
 #include "static.h"
 

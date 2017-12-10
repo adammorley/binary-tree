@@ -79,17 +79,17 @@ node* tree_search(tree* t, long d) {
     return _tree_search(n, d);
 }
 
-static void _tree_node_free(node* n) {
+STATIC void _tree_node_free(node* n) {
     if (n->l != NULL) _tree_node_free(n->l);
     if (n->r != NULL) _tree_node_free(n->r);
     free(n);
 }
 
-void _tree_free_N(tree* t) {
+void _tree_free(tree* t) {
     node* n = _get_root(t);
     if (n == NULL) return;
     _tree_node_free(n);
-    t->r = NULL;
+    free(t);
 }
 
 /*
@@ -391,7 +391,9 @@ STATIC node* _right_left(node* X) {
     X->p = Y;
 
     X->r = Y->l;
+    if (X->r) X->r->p = X;
     Z->l = Y->r;
+    if (Z->l) Z->l->p = Z;
 
     Y->l = X;
     Y->r = Z;
@@ -473,7 +475,9 @@ STATIC node* _left_right(node* X) {
     X->p = Y;
 
     X->l = Y->r;
+    if (X->l) X->l->p = X;
     Z->r = Y->l;
+    if (Z->r) Z->r->p = Z;
 
     Y->r = X;
     Y->l = Z;
