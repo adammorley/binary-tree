@@ -9,6 +9,8 @@
 #endif
 
 #ifdef _UNIT_TEST
+STATIC node* _get_root(tree* t);
+
 STATIC node* _insert_node(node* n, node* c);
 
 STATIC node* _retrace(node* n, bool insert);

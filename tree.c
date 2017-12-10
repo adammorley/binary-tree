@@ -8,7 +8,7 @@
 // tree internal function prototypes
 #include "static.h"
 
-static node* _get_root(tree* t) {
+STATIC node* _get_root(tree* t) {
     assert(t);
     return t->r;
 }
