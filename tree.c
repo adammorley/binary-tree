@@ -286,28 +286,23 @@ STATIC void _remove_complex(node* n) {
     if (c->r != NULL) c->p->l = c->r;
     else c->p->l = NULL;
 
+    // increase the parents balance factor (the left shrank by 1)
+    c->p->b += 1;
+
     // hook it into the right place
     c->p = n->p;
     c->b = n->b;
-    if (n->p->r == n) n->p->r = c;
-    if (n->p->l == n) n->p->r = c;
+    if (n->p->r == n) {
+        n->p->r = c;
+    } else if (n->p->l == n) {
+        n->p->r = c;
+    } else assert(true);
 
-    // update the balance factors up to the node to be removed
-    // FIXME: what happens here when there is a right child?
-    // it's in the second while loop: the number doesn't decrement
-    // as fast in that case
-    node* t = c;
-    while (t->p != n) {
-        t = t->p;
-        t->b += 1;
-    }
-
-    // do the replaces
+    // swap in the children from n to c
     n->l->p = c; c->l = n->l;
     n->r->p = c; c->r = n->r;
 
     // and update the balance factors to the root
-    t = c;
     while (c->p != NULL) {
         c->b -= 1;
         c = c->p;
@@ -315,7 +310,7 @@ STATIC void _remove_complex(node* n) {
 }
 
 /*
-    rebalance tree if needed
+    rebalance tree methods
 
     there are four unbalanced states:
     right right (the right side is right heavy)
