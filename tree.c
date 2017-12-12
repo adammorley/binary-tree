@@ -108,12 +108,8 @@ void _tree_free(tree* t) {
 STATIC node* _insert_node(node* n, node* c) {
     if (c->d < n->d && n->l != NULL) return _insert_node(n->l, c);
     if (c->d > n->d && n->r != NULL) return _insert_node(n->r, c);
-    bool right = false;
     if (c->d < n->d && n->l == NULL) n->l = c;
-    if (c->d > n->d && n->r == NULL) {
-        n->r = c;
-        right = true;
-    }
+    if (c->d > n->d && n->r == NULL) n->r = c;
     c->p = n;
     return _retrace(c, true /* insert */);
 }
@@ -161,6 +157,7 @@ STATIC node* _retrace(node* c, bool insert) {
             in the removal case, this isn't needed since there
             is an easy way to determine the node swap.
         */
+        //FIXME: here
         if (insert) {
             if (p->p->d < p->d) p->p->r = p;
             if (p->p->d > p->d) p->p->l = p;
@@ -263,6 +260,8 @@ STATIC void _remove_right_no_left(node* n) {
          28
 
     FIXME: i think 24 needs to have a right child.  if only left, then can just traverse down until it's found.
+    FIXME: ALSO: does the pointer swap that's in the insert case in _retrace matter for removals?
+        write test case that has left side heavy when right side has a delete
     to
 
     10
