@@ -59,9 +59,13 @@ bool tree_remove(tree* t, long d) {
     n = tree_search(t, d);
     if (n == NULL) return false;
 
-    if (n->r == NULL) _remove_no_right_children(n);
-    if (n->r != NULL && n->r->l == NULL) _remove_right_no_left(n);
-    if (n->r != NULL && n->r->l != NULL) _remove_complex(n);
+    if (n->r == NULL) {
+        _remove_no_right_children(n);
+    } else if (n->r != NULL && n->r->l == NULL) {
+        _remove_right_no_left(n);
+    } else if (n->r != NULL && n->r->l != NULL) {
+        _remove_complex(n);
+    } else assert(true);
     free(n);
     return true;
 }
@@ -258,6 +262,7 @@ STATIC void _remove_right_no_left(node* n) {
          \
          28
 
+    FIXME: i think 24 needs to have a right child.  if only left, then can just traverse down until it's found.
     to
 
     10
