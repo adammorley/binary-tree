@@ -409,8 +409,8 @@ STATIC node* _right_right(node* X) {
         LOG_DEBUG("delete from %li L", __func__, X->d);
         X->b = 1;
         Z->b = -1;
-    } else { // insertion or deletion on Z side
-        LOG_DEBUG("insert or delete from %li LR", __func__, Z->d);
+    } else {
+        LOG_DEBUG("insert R or delete L from %li", __func__, Z->d);
         X->b = 0;
         Z->b = 0;
     }
@@ -451,14 +451,17 @@ STATIC node* _right_left(node* X) {
 
     Y->l = X;
     Y->r = Z;
-    if (Y->b == 0) { // deletion from t0
+    if (Y->b == 0) {
+        LOG_DEBUG("delete from %li L", __func__, X->d);
         X->b = 0;
         Z->b = 0;
-    } else if (Y->b == -1) { // insertion in t1
+    } else if (Y->b == -1) {
+        LOG_DEBUG("insert on %li L", __func__, Y->d);
         X->b = 0;
         Z->b = 1;
         Y->b = 0;
-    } else if (Y->b == 1) { // insertion in t2
+    } else if (Y->b == 1) {
+        LOG_DEBUG("insert on %li R", __func__, Y->d);
         X->b = -1;
         Z->b = 0;
         Y->b = 0;
@@ -493,10 +496,12 @@ STATIC node* _left_left(node* X) {
     if (X->l) X->l->p = X;
 
     Z->r = X;
-    if (Z->b == 0) { // deletion from t2
+    if (Z->b == 0) {
+        LOG_DEBUG("delete from %li R", __func__, X->d);
         X->b = -1;
         Z->b = 1;
-    } else { // insertion or deletion on Z side
+    } else {
+        LOG_DEBUG("insert L or delete R from %li", __func__, Z->d);
         X->b = 0;
         Z->b = 0;
     }
@@ -537,14 +542,17 @@ STATIC node* _left_right(node* X) {
 
     Y->r = X;
     Y->l = Z;
-    if (Y->b == 0) { // deletion from t3
+    if (Y->b == 0) {
+        LOG_DEBUG("delete from %li R", __func__, X->d);
         X->b = 0;
         Z->b = 0;
-    } else if (Y->b == -1) { // insert t1
+    } else if (Y->b == -1) {
+        LOG_DEBUG("insert on %li L", __func__, Y->d);
         X->b = 0;
         Z->b = 1;
         Y->b = 0;
-    } else if (Y->b == 1) { // insert t2
+    } else if (Y->b == 1) {
+        LOG_DEBUG("insert on %li R", __func__, Y->d);
         X->b = -1;
         Z->b = 0;
         Y->b = 0;
