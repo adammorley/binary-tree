@@ -10,6 +10,12 @@ struct tree {
 };
 
 /*
+    enable logging for tree routines
+    (asserts are always enabled)
+*/
+void _tree_enable_logging(bool debug);
+
+/*
     insert a node or data into a tree
 */
 void tree_insert(tree* t, long d);
