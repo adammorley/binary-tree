@@ -12,6 +12,7 @@
 STATIC void Assert(bool condition, const char* func, const char* format, ...);
 
 STATIC node* _get_root(tree* t);
+STATIC node* _up_to_root(node* n);
 
 STATIC node* _insert_node(node* n, node* c);
 

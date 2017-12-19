@@ -3,54 +3,15 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+
+#include "../log/log.h"
 #include "../tree-node/node.h"
+
 #include "tree.h"
-
-long _calculate_height(node* n) {
-    long h_l = 0;
-    long h_r = 0;
-    if (n->l != NULL) {
-        h_l += 1;
-        h_l += _calculate_height(n->l);
-    }
-    if (n->r != NULL) {
-        h_r += 1;
-        h_r += _calculate_height(n->r);
-    }
-    return (h_r >= h_l ? h_r : h_l);
-}
-
-void _validate_bf(node* n) {
-    long h_l = 0;
-    long h_r = 0;
-    if (n->l != NULL) {
-        h_l += 1;
-        h_l += _calculate_height(n->l);
-    }
-    if (n->r != NULL) {
-        h_r += 1;
-        h_r += _calculate_height(n->r);
-    }
-    Assert(h_r - h_l == n->b, __func__, "node %lu d %li b %li invalid, height: r: %li l: %li", n, n->d, n->b, h_r, h_l);
-}
-
-void _check_tree_node(node* n) {
-    if (n != NULL) {
-        if (n->l != NULL) {
-            Assert(n->d > n->l->d, __func__, "node %lu d %li L child of %lu is misplaced", n->l, n->d, n->l->d);
-            _check_tree_node(n->l);
-        }
-        if (n->r != NULL) {
-            Assert(n->d < n->r->d, __func__, "node %lu d %li R child of %lu is misplaced", n->r, n->d, n->r->d);
-            _check_tree_node(n->r);
-        }
-        _validate_bf(n);
-    }
-}
 
 void _check_tree(tree* t) {
     node* n = _get_root(t);
-    _check_tree_node(n);
+    node_check_tree(n);
 }
 
 node* right_heavy() {
@@ -63,7 +24,7 @@ node* right_heavy() {
     n2->p = n1;
     n0->b = 2;
     n1->b = 1;
-    _check_tree_node(n0);
+    node_check_tree(n0);
     return n0;
 }
 
@@ -73,7 +34,7 @@ node* right() {
     n0->r = n1;
     n0->b = 1;
     n1->p = n0;
-    _check_tree_node(n0);
+    node_check_tree(n0);
     return n0;
 }
 
@@ -87,7 +48,7 @@ node* left_heavy() {
     n2->p = n1;
     n0->b = -2;
     n1->b = -1;
-    _check_tree_node(n0);
+    node_check_tree(n0);
     return n0;
 }
 
@@ -113,7 +74,7 @@ node* right_left_heavy() {
     n6->p = n5;
     n1->b = 2;
     n5->b = -1;
-    _check_tree_node(n1);
+    node_check_tree(n1);
     return n1;
 }
 
@@ -139,7 +100,7 @@ node* left_right_heavy() {
     n4->p = n3;
     n5->b = -2;
     n1->b = 1;
-    _check_tree_node(n5);
+    node_check_tree(n5);
     return n5;
 }
 
@@ -159,7 +120,7 @@ node* simple_balanced() {
     n4->p = n3;
 
     n1->b = 1;
-    _check_tree_node(n1);
+    node_check_tree(n1);
     return n1;
 }
 
@@ -184,7 +145,7 @@ node* lopsided_balanced() {
     n4->p = n5;
     n5->r = n6;
     n6->p = n5;
-    _check_tree_node(n3);
+    node_check_tree(n3);
     return n3;
 }
 
@@ -195,7 +156,7 @@ void validate_balance_simple(node* n) {
     assert(n->l->b == 0);
     assert(n->r->d == 2);
     assert(n->r->b == 0);
-    _check_tree_node(n);
+    node_check_tree(n);
 }
 
 void check_bf(node* n) {
@@ -213,7 +174,7 @@ void test__update_bf_insert() {
     c->p = p;
     _update_bf_insert(p, c);
     assert(p->b == 1);
-    _check_tree_node(p);
+    node_check_tree(p);
     _tree_node_free(p);
 }
 
@@ -221,13 +182,13 @@ void test_simple() {
     printf("simple test\n");
     node* x = right_heavy();
     x = _right_right(x);
-    _check_tree_node(x);
+    node_check_tree(x);
     validate_balance_simple(x);
     _tree_node_free(x);
 
     x = left_heavy();
     x = _left_left(x);
-    _check_tree_node(x);
+    node_check_tree(x);
     validate_balance_simple(x);
     _tree_node_free(x);
 }
@@ -236,13 +197,13 @@ void test_simple_rebalancing() {
     printf("simple rebalance test\n");
     node* x = right_heavy();
     x = _rebalance(x);
-    _check_tree_node(x);
+    node_check_tree(x);
     validate_balance_simple(x);
     _tree_node_free(x);
 
     x = left_heavy();
     x = _rebalance(x);
-    _check_tree_node(x);
+    node_check_tree(x);
     validate_balance_simple(x);
     _tree_node_free(x);
 }
@@ -257,7 +218,7 @@ void test_retracing() {
     assert(x->d == 1 && x->b == 0 && x->p == NULL);
     assert(x->r->d == 2 && x->r->b == 0 && x->r->p == x && x->r->r == NULL && x->r->l == NULL);
     assert(x->l->d == 0 && x->l->b == 0 && x->l->p == x && x->l->r == NULL && x->r->l == NULL);
-    _check_tree_node(x);
+    node_check_tree(x);
     _tree_node_free(x);
 
     x = simple_balanced();
@@ -272,7 +233,7 @@ void test_retracing() {
     assert(x->l->l->d == 0 && x->l->l->b == 0 && x->l->l->p == x->l && x->l->l->l == NULL && x->l->l->r == NULL);
     assert(x->l->r->d == 2 && x->l->r->b == 0 && x->l->r->p == x->l && x->l->r->l == NULL && x->l->r->r == NULL);
     assert(x->r->r->d == 5 && x->r->r->b == 0 && x->r->r->p == x->r && x->r->r->l == NULL && x->r->r->r == NULL);
-    _check_tree_node(x);
+    node_check_tree(x);
     _tree_node_free(x);
 }
 
@@ -287,7 +248,7 @@ void test__insert_node() {
     assert(x->l->l->d == 0 && x->l->l->b == 0 && x->l->l->p == x->l && x->l->l->l == NULL && x->l->l->r == NULL);
     assert(x->l->r->d == 2 && x->l->r->b == 0 && x->l->r->p == x->l && x->l->r->l == NULL && x->l->r->r == NULL);
     assert(x->r->r->d == 5 && x->r->r->b == 0 && x->r->r->p == x->r && x->r->r->l == NULL && x->r->r->r == NULL);
-    _check_tree_node(x);
+    node_check_tree(x);
     _tree_node_free(x);
 
     x = node_new(0);
@@ -296,7 +257,7 @@ void test__insert_node() {
         t = _insert_node(x, node_new(i));
         if (t->p == NULL) x = t;
     }
-    _check_tree_node(x);
+    node_check_tree(x);
     _tree_node_free(x);
 }
 
@@ -318,7 +279,7 @@ tree* create_big_tree(long* nums, int cnt) {
     for (int i = 0; i <= cnt; i++) {
         assert(tree_search(t, nums[i])->d == nums[i]);
     }
-    _check_tree_node(_get_root(t));
+    node_check_tree(_get_root(t));
     return t;
 }
 
@@ -328,7 +289,7 @@ void test_big_tree() {
     long* nums = make_nums(cnt);
     tree* t = create_big_tree(nums, cnt);
     check_bf(_get_root(t));
-    _check_tree_node(_get_root(t));
+    node_check_tree(_get_root(t));
     free(nums);
     _tree_free(t);
 }
@@ -339,8 +300,8 @@ void test_lopsided() {
     x = _right_left(x);
     node* y = lopsided_balanced();
     assert(node_compare_recurse(x, y));
-    _check_tree_node(x);
-    _check_tree_node(y);
+    node_check_tree(x);
+    node_check_tree(y);
     _tree_node_free(x);
     _tree_node_free(y);
 
@@ -348,8 +309,8 @@ void test_lopsided() {
     x = _left_right(x);
     y = lopsided_balanced();
     assert(node_compare_recurse(x, y));
-    _check_tree_node(x);
-    _check_tree_node(y);
+    node_check_tree(x);
+    node_check_tree(y);
     _tree_node_free(x);
     _tree_node_free(y);
 }
@@ -373,7 +334,7 @@ void test_insert_correctness() {
     check_bf(_get_root(t));
     // technically the above has checked everything, but let's
     // do this for correctness
-    _check_tree_node(_get_root(t));
+    node_check_tree(_get_root(t));
     _tree_free(t);
 }
 
@@ -392,17 +353,17 @@ void test__remove_no_right_children() {
     n2->p = n3;
     n3->b = -1;
     n1->b = 1;
-    _check_tree_node(n1);
+    node_check_tree(n1);
 
     tree* t = tree_new();
     tree_insert(t, 1);
     tree_insert(t, 0);
     tree_insert(t, 2);
-    _check_tree_node(_get_root(t));
+    node_check_tree(_get_root(t));
 
     _remove_no_right_children(n3);
     node* x = _get_root(t);
-    _check_tree_node(n1);
+    node_check_tree(n1);
     assert(node_compare_recurse(n1, x));
     _tree_node_free(n1);
     _tree_free(t);
@@ -434,7 +395,7 @@ void test__remove_right_no_left() {
     n3->b = 1;
     n1->b = 1;
     n0->b = -1;
-    _check_tree_node(n1);
+    node_check_tree(n1);
    
     tree* t = tree_new();
     tree_insert(t, 1);
@@ -443,10 +404,10 @@ void test__remove_right_no_left() {
     tree_insert(t, 3);
     tree_insert(t, -1);
     tree_insert(t, 5);
-    _check_tree_node(_get_root(t));
+    node_check_tree(_get_root(t));
 
     _remove_right_no_left(n4);
-    _check_tree_node(n1);
+    node_check_tree(n1);
     assert(node_compare_recurse(n1, _get_root(t)));
     _tree_node_free(n1);
     _tree_free(t);
@@ -506,7 +467,7 @@ struct node_con complex_tree() {
     struct node_con con;
     con.root = n0;
     con.removal = n3;
-    _check_tree_node(n0);
+    node_check_tree(n0);
     return con;
 }
 
@@ -520,7 +481,7 @@ void test__remove_complex() {
     assert(n->d == 0);
     assert(n->r->d == 4); // remove
     assert(n->r->r->d == 7); // rebalance
-    _check_tree_node(n);
+    node_check_tree(n);
     _tree_node_free(n);
 
     tree* t = tree_new();
@@ -529,7 +490,7 @@ void test__remove_complex() {
     }
     node* d = tree_search(t, 39);
     _remove_complex(d);
-    _check_tree_node(_get_root(t));
+    node_check_tree(_get_root(t));
     _tree_free(t);
 }
 
@@ -538,29 +499,27 @@ void test_many_internal(int cnt) {
 
     // test even removal
     tree* t = create_big_tree(nums, cnt);
-    _check_tree_node(_get_root(t));
+    node_check_tree(_get_root(t));
     for (long i = 0; i <= cnt - 2; i += 2) {
         assert(tree_remove(t, i));
-        _check_tree_node(_get_root(t));
+        node_check_tree(_get_root(t));
     }
     _tree_free(t);
 
     // test odd removal
-    /*t = create_big_tree(nums, cnt);
-    _check_tree_node(_get_root(t));
+    t = create_big_tree(nums, cnt);
+    node_check_tree(_get_root(t));
     for (long i = 1; i <= cnt - 2; i += 2) {
         assert(tree_remove(t, i));
-        _check_tree_node(_get_root(t));
+        node_check_tree(_get_root(t));
     }
-    _tree_free(t);*/
+    _tree_free(t);
     free(nums);
 }
 
 void test_many() {
     printf("testing many inserts/deletes\n");
-    //FIXME: root page if i=2 bug
-    //       of if i == 1 in odd removal loop
-    for (int i = 3; i <= 999; i++) {
+    for (int i = 1; i <= 999; i++) {
         test_many_internal(i);
     }
 }
