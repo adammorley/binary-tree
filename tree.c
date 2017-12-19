@@ -26,7 +26,7 @@ static void LOG_DEBUG(const char* format, const char* func, ...) {
 }
 
 static bool logASSERT = true;
-static void Assert(bool condition, const char* func, const char* format, ...) {
+STATIC void Assert(bool condition, const char* func, const char* format, ...) {
     if (!condition && logASSERT) {
         va_list args;
         va_start(args, format);
@@ -41,7 +41,7 @@ void _tree_enable_logging(bool debug) {
 }
     
 STATIC node* _get_root(tree* t) {
-    Assert(true, __func__, "tree is null");
+    Assert(t != NULL, __func__, "tree is null");
     return t->r;
 }
 
@@ -53,12 +53,13 @@ void tree_insert(tree* t, long d) {
         return;
     }
     if (n->d == d) return; // noop
-    t->r = _insert_node(n, c);
+    n = _insert_node(n, c);
+    if (n->p == NULL) t->r = n;
 }
 
 tree* tree_new() {
     tree* t = malloc(sizeof(tree));
-    if (t == NULL) Assert(true, __func__, "malloc error");
+    Assert(t != NULL, __func__, "malloc error");
     t->r = NULL;
     return t;
 }
@@ -91,6 +92,7 @@ bool tree_remove(tree* t, long d) {
     if (n == NULL) return false;
 
     node* r;
+    //FIXME: what about root page?
     if (n->r == NULL && n->l == NULL) {
         r = _remove_no_children(n);
     } else if (n->r == NULL) {
@@ -99,8 +101,8 @@ bool tree_remove(tree* t, long d) {
         r = _remove_right_no_left(n);
     } else if (n->r != NULL && n->r->l != NULL) {
         r = _remove_complex(n);
-    } else Assert(true, __func__, "unhandled node removal");
-    t->r = r;
+    } else Assert(false, __func__, "unhandled node removal");
+    if (r->p == NULL) t->r = r;
     free(n);
     return true;
 }
@@ -115,6 +117,7 @@ static node* _tree_search(node* n, long d) {
 node* tree_search(tree* t, long d) {
     node* n = _get_root(t);
     if (n == NULL) return NULL;
+    LOG_DEBUG("searching for: %li", __func__, d);
     return _tree_search(n, d);
 }
 
@@ -143,39 +146,20 @@ void _tree_free(tree* t) {
 STATIC node* _insert_node(node* n, node* c) {
     if (c->d < n->d && n->l != NULL) return _insert_node(n->l, c);
     if (c->d > n->d && n->r != NULL) return _insert_node(n->r, c);
+    LOG_DEBUG("inserting: %li", __func__, c->d);
     if (c->d < n->d && n->l == NULL) n->l = c;
     if (c->d > n->d && n->r == NULL) n->r = c;
     c->p = n;
-    return _retrace(c, true /* insert */);
+    return _retrace_insert(c);
 }
 
-/*
-    update the balance factors.  insert = true for insertions, false
-    for removals (which alters the balance factor calculations
-*/
-STATIC void _update_bf(node* p, node* c, bool insert) {
-    //FIXME: so if root is pivoting, how do we know which side
-    //       shrank?
-    if (p->l == c) {
-        if (insert) p->b -= 1;
-        else p->b += 1;
-    }
-    else if (p->r == c) {
-        if (insert) p->b += 1;
-        else p->b -= 1;
-    } else Assert(true, __func__, "unhandled parent/child relationship");
-    Assert(p->b < 3 && p->b > -3, __func__, "balance factor invariant");
-    LOG_DEBUG("updated balance factor of %li to %li, parent of %li", __func__, p->d, p->b, c->d);
-}
- 
 /* 
     node c was just inserted (and hence balance factor = 0)
-    or replaced a node being simply removed
     update its parent's balance factor, retracing up the tree
     rebalance if needed.
 */
-STATIC node* _retrace(node* c, bool insert) {
-    LOG_DEBUG("retracing from %li", __func__, c->d);
+STATIC node* _retrace_insert(node* c) {
+    LOG_DEBUG("retracing insert at %li", __func__, c->d);
     node* p = c;
     /*
         note break case, prevents null pointer in ensuing statements
@@ -183,25 +167,66 @@ STATIC node* _retrace(node* c, bool insert) {
     */
     while (true) {
         p = p->p;
-        _update_bf(p, c, insert);
+        _update_bf_insert(p, c);
         if (p->b == 2 || p->b == -2) p = _rebalance(p);
         if (p->p == NULL) break;
-        /*
-            the rebalancing returns a node
-            that node is the node which belongs where old p was.
-            but here it is not known whether old p was on the left
-            or right branch of its parent, so the comparison
-            is the only way to find it
-        */
-        if (p->p->d < p->d) p->p->r = p;
-        if (p->p->d > p->d) p->p->l = p;
-        //FIXME: i think this is supposed to be p not c->p
-        c = p;//c->p;
+        // must re-home new top node
+        //if (p->p->d < p->d) p->p->r = p;
+        //if (p->p->d > p->d) p->p->l = p;
+        if (p->b == 0) break;
+        c = p;
     }
-    Assert(p != NULL, __func__, "p not null");
-    Assert(p->p == NULL, __func__, "p not root");
-    LOG_DEBUG("new root: %li", __func__, p->d);
+    Assert(p != NULL, __func__, "p null");
+    LOG_DEBUG("new top: %li", __func__, p->d);
     return p;
+}
+
+STATIC void _update_bf_insert(node* p, node* c) {
+    if (p->l == c) p->b -= 1;
+    else if (p->r == c) p->b += 1;
+    else Assert(p->l == NULL && p->r == NULL, __func__, "unhandled parent/child relationship");
+    Assert(p->b < 3 && p->b > -3, __func__, "balance factor invariant for %li", p->d);
+    LOG_DEBUG("updated balance factor of %li to %li, parent of %li", __func__, p->d, p->b, c->d);
+}
+ 
+/* 
+    node n just had a child removed, retrace and rebalance
+*/
+STATIC node* _retrace_remove(node* n) {
+    LOG_DEBUG("retracing removal from %li", __func__, n->d);
+    /*
+        note break case, prevents null pointer in ensuing statements
+        and prevents loop forever
+    */
+    while (true) {
+        // previously balanced node is now unbalanced but height unchanged
+        if (n->b == 1 || n->b == -1) break;
+        if (n->b == 2 || n->b == -2) n = _rebalance(n);
+        if (n->b == 1 || n->b == -1) break;
+        if (n->p == NULL) break;
+        if (n->p->d < n->d) n->p->b -= 1;
+        else if (n->p->d > n->d) n->p->b += 1;
+        else Assert(false, __func__, "unhandled parent/child relationship");
+        Assert(n->b < 2 && n->b > -2, __func__, "node %li balance factor out of range after rebalance", n->d);
+        Assert(n->p->b < 3 && n->p->b > -3, __func__, "balance factor invariant for %li", n->p->d);
+        n = n->p;
+    }
+    Assert(n != NULL, __func__, "n null");
+    LOG_DEBUG("new top: %li", __func__, n->d);
+    return n;
+}
+
+/*
+    replace node c with x and update bf at p
+    returns true if retracing can be skipped because deletion was
+    absorbed
+*/
+STATIC void _remove_splice(node* p, node* c, node* x) {
+    if (p->l == c) {
+        p->l = x;
+    } else if (p->r == c) {
+        p->r = x;
+    } else Assert(false, __func__, "unhandled parent/child case: %li, %li", p->d, c->d);
 }
 
 /*
@@ -224,17 +249,26 @@ STATIC node* _rebalance(node* n) {
         } else { // left right, n->l->b == 1
             n = _left_right(n);
         }
-    } else Assert(true, __func__, "unhandled balanced factor");
+    } else Assert(false, __func__, "unhandled balance factor");
     LOG_DEBUG("rebalanced to %li", __func__, n->d);
+    if (n->p == NULL) return n;
+    else if (n->p->d < n->d) n->p->r = n;
+    else if (n->p->d > n->d) n->p->l = n;
+    else Assert(false, __func__, "unhandled parent/child case: %li, %li", n->p->d, n->d);
     return n;
 }
 
-/* node has no children, can simply remove and retrace */
-STATIC node* _remove_no_children(node* n) {
-    LOG_DEBUG("removing %li", __func__, n->d);
-    if (n->p->l == n) n->p->l = NULL;
-    if (n->p->r == n) n->p->r = NULL;
-    return _retrace(n, false /* insert */);
+/*
+    node has no children, can simply remove and retrace
+    only need to retrace if tree height decreased
+*/
+STATIC node* _remove_no_children(node* c) {
+    LOG_DEBUG("removing %li", __func__, c->d);
+    node* p = c->p;
+    if (p->r == c) p->b -= 1;
+    else p->b += 1;
+    _remove_splice(p, c, NULL);
+    return _retrace_remove(p);
 }
 
 /* node has no right children, can simply swap pointers at parent
@@ -253,11 +287,12 @@ STATIC node* _remove_no_children(node* n) {
 
 */
 STATIC node* _remove_no_right_children(node* n) {
-    LOG_DEBUG("removing %li and replacing with %li", __func__, n->d, n->l->d);
-    n->l->p = n->p;
-    if (n->p->l == n) n->p->l = n->l;
-    if (n->p->r == n) n->p->r = n->l;
-    return _retrace(n->l, false /* insert */);
+    node* p = n->p;
+    node* x = n->l;
+    LOG_DEBUG("removing %li and replacing with %li", __func__, n->d, x->d);
+    x->p = n->p;
+    _remove_splice(p, n, x);
+    return _retrace_remove(x);
 }
 
 /* node has right child, but child has no left children
@@ -282,13 +317,14 @@ STATIC node* _remove_no_right_children(node* n) {
            40
 */
 STATIC node* _remove_right_no_left(node* n) {
-    LOG_DEBUG("removing %li and replacing with %li", __func__, n->d, n->r->d);
-    n->r->p = n->p;
-    n->r->l = n->l;
-    if (n->p != NULL) {
-        if (n->p->l == n) n->p->l = n->r;
-        if (n->p->r == n) n->p->r = n->r;
-    } return _retrace(n->r, false /* insert */);
+    node* p = n->p;
+    node* x = n->r;
+    LOG_DEBUG("removing %li and replacing with %li", __func__, n->d, x->d);
+    x->p = p;
+    x->l = n->l;
+    x->b = n->b - 1;
+    _remove_splice(p, n, x);
+    return _retrace_remove(x);
 }
 
 /*
@@ -334,16 +370,29 @@ STATIC node* _remove_complex(node* n) {
     if (c->r != NULL) c->p->l = c->r;
     else c->p->l = NULL;
 
-    // increase the parents balance factor (the left shrank by 1)
-    c->p->b += 1;
-
     /*
-        this isn't ideal, but it's the nicest way to re-use the code
-        from the other cases.  create a temporary child node that 
-        points to the old child's parent to feed it to the re-tracer
+        if parent was balanced, don't need to retrace (height didn't change)
+        but if the parent is unbalanced, and it's right side is unbalanced,
+            then just rebalance the parent (since the child was moved)
+            and no retracing needed since the height of the tree
+            remains the same
+        if the parent's parent was balanced, only need to update parent and
+            parent's parent, as rebalance not needed
+        otherwise, have to update parent and retrace (see _retrace later)
     */
-    node* t = node_new(c->d);
-    t->p = c->p;
+    node* p = NULL;
+    if (c->p->b == 0) {
+        c->p->b += 1;
+    } else if (c->p->b == 1 && c->p->r->b == 0) {
+        c->p->b += 1;
+        n->r = _rebalance(c->p); 
+    } else if (c->p->p->b == 0) {
+        c->p->b += 1;
+        c->p->p->b -= 1;
+    } else {
+        c->p->b += 1;
+        p = c->p; // retrace happens before return
+    }
 
     // hook it into the right place
     c->p = n->p;
@@ -358,10 +407,9 @@ STATIC node* _remove_complex(node* n) {
     n->l->p = c; c->l = n->l;
     n->r->p = c; c->r = n->r;
 
-    n = _retrace(t, false /* insert */);
-    free(t);
-    LOG_DEBUG("new node %li", __func__, n->d);
-    return n;
+    if (p) c = _retrace_remove(p);
+    LOG_DEBUG("new node %li", __func__, c->d);
+    return c;
 }
 
 /*
@@ -465,7 +513,7 @@ STATIC node* _right_left(node* X) {
         X->b = -1;
         Z->b = 0;
         Y->b = 0;
-    } else Assert(true, __func__, "invalid balance factor for Y in right left case");
+    } else Assert(false, __func__, "invalid balance factor for Y in right left case");
     return Y;
 }
 /*
@@ -556,6 +604,6 @@ STATIC node* _left_right(node* X) {
         X->b = -1;
         Z->b = 0;
         Y->b = 0;
-    } else Assert(true, __func__, "unhandled balance factor for Y in left right case");
+    } else Assert(false, __func__, "unhandled balance factor for Y in left right case");
     return Y;
 }
