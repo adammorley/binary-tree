@@ -33,8 +33,6 @@ STATIC node* _right_right(node* X);
 STATIC node* _right_left(node* X);
 STATIC node* _left_left(node* X);
 STATIC node* _left_right(node* X);
-
-STATIC void _tree_node_free(node* n);
 #endif // _UNIT_TEST
 
 #endif //TREE_STATIC_H

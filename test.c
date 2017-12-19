@@ -175,7 +175,7 @@ void test__update_bf_insert() {
     _update_bf_insert(p, c);
     assert(p->b == 1);
     node_check_tree(p);
-    _tree_node_free(p);
+    node_free_recurse(p);
 }
 
 void test_simple() {
@@ -184,13 +184,13 @@ void test_simple() {
     x = _right_right(x);
     node_check_tree(x);
     validate_balance_simple(x);
-    _tree_node_free(x);
+    node_free_recurse(x);
 
     x = left_heavy();
     x = _left_left(x);
     node_check_tree(x);
     validate_balance_simple(x);
-    _tree_node_free(x);
+    node_free_recurse(x);
 }
 
 void test_simple_rebalancing() {
@@ -199,13 +199,13 @@ void test_simple_rebalancing() {
     x = _rebalance(x);
     node_check_tree(x);
     validate_balance_simple(x);
-    _tree_node_free(x);
+    node_free_recurse(x);
 
     x = left_heavy();
     x = _rebalance(x);
     node_check_tree(x);
     validate_balance_simple(x);
-    _tree_node_free(x);
+    node_free_recurse(x);
 }
 
 void test_retracing() {
@@ -219,7 +219,7 @@ void test_retracing() {
     assert(x->r->d == 2 && x->r->b == 0 && x->r->p == x && x->r->r == NULL && x->r->l == NULL);
     assert(x->l->d == 0 && x->l->b == 0 && x->l->p == x && x->l->r == NULL && x->r->l == NULL);
     node_check_tree(x);
-    _tree_node_free(x);
+    node_free_recurse(x);
 
     x = simple_balanced();
     x->r->r->r = node_new(5);
@@ -234,7 +234,7 @@ void test_retracing() {
     assert(x->l->r->d == 2 && x->l->r->b == 0 && x->l->r->p == x->l && x->l->r->l == NULL && x->l->r->r == NULL);
     assert(x->r->r->d == 5 && x->r->r->b == 0 && x->r->r->p == x->r && x->r->r->l == NULL && x->r->r->r == NULL);
     node_check_tree(x);
-    _tree_node_free(x);
+    node_free_recurse(x);
 }
 
 void test__insert_node() {
@@ -249,16 +249,14 @@ void test__insert_node() {
     assert(x->l->r->d == 2 && x->l->r->b == 0 && x->l->r->p == x->l && x->l->r->l == NULL && x->l->r->r == NULL);
     assert(x->r->r->d == 5 && x->r->r->b == 0 && x->r->r->p == x->r && x->r->r->l == NULL && x->r->r->r == NULL);
     node_check_tree(x);
-    _tree_node_free(x);
+    node_free_recurse(x);
 
     x = node_new(0);
-    node* t;
-    for (long i = 0; i <= 50; i++) {
-        t = _insert_node(x, node_new(i));
-        if (t->p == NULL) x = t;
+    for (long i = 1; i <= 50; i++) {
+        x = _insert_node(x, node_new(i));
     }
     node_check_tree(x);
-    _tree_node_free(x);
+    node_free_recurse(x);
 }
 
 long* make_nums(int cnt) {
@@ -302,8 +300,8 @@ void test_lopsided() {
     assert(node_compare_recurse(x, y));
     node_check_tree(x);
     node_check_tree(y);
-    _tree_node_free(x);
-    _tree_node_free(y);
+    node_free_recurse(x);
+    node_free_recurse(y);
 
     x = left_right_heavy();
     x = _left_right(x);
@@ -311,8 +309,8 @@ void test_lopsided() {
     assert(node_compare_recurse(x, y));
     node_check_tree(x);
     node_check_tree(y);
-    _tree_node_free(x);
-    _tree_node_free(y);
+    node_free_recurse(x);
+    node_free_recurse(y);
 }
 
 void test_insert_correctness() {
@@ -362,10 +360,11 @@ void test__remove_no_right_children() {
     node_check_tree(_get_root(t));
 
     _remove_no_right_children(n3);
+    free(n3);
     node* x = _get_root(t);
     node_check_tree(n1);
     assert(node_compare_recurse(n1, x));
-    _tree_node_free(n1);
+    node_free_recurse(n1);
     _tree_free(t);
 }
 
@@ -407,9 +406,10 @@ void test__remove_right_no_left() {
     node_check_tree(_get_root(t));
 
     _remove_right_no_left(n4);
+    free(n4);
     node_check_tree(n1);
     assert(node_compare_recurse(n1, _get_root(t)));
-    _tree_node_free(n1);
+    node_free_recurse(n1);
     _tree_free(t);
 }
 
@@ -477,12 +477,13 @@ void test__remove_complex() {
     node* n = con.root;
     node* r = con.removal;
     _remove_complex(r);
+    free(r);
     
     assert(n->d == 0);
     assert(n->r->d == 4); // remove
     assert(n->r->r->d == 7); // rebalance
     node_check_tree(n);
-    _tree_node_free(n);
+    node_free_recurse(n);
 
     tree* t = tree_new();
     for (long i = 0; i <= 50; i++) {
@@ -490,6 +491,7 @@ void test__remove_complex() {
     }
     node* d = tree_search(t, 39);
     _remove_complex(d);
+    free(d);
     node_check_tree(_get_root(t));
     _tree_free(t);
 }

@@ -102,16 +102,10 @@ node* tree_search(tree* t, long d) {
     return _tree_search(n, d);
 }
 
-STATIC void _tree_node_free(node* n) {
-    if (n->l != NULL) _tree_node_free(n->l);
-    if (n->r != NULL) _tree_node_free(n->r);
-    free(n);
-}
-
 void _tree_free(tree* t) {
     node* n = _get_root(t);
     if (n == NULL) return;
-    _tree_node_free(n);
+    node_free_recurse(n);
     free(t);
 }
 
