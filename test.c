@@ -8,6 +8,7 @@
 #include "../tree-node/node.h"
 
 #include "tree.h"
+#include "test-support.h"
 
 void _check_tree(tree* t) {
     node* n = _get_root(t);
@@ -259,28 +260,6 @@ void test__insert_node() {
     node_free_recurse(x);
 }
 
-long* make_nums(int cnt) {
-    long* nums = malloc(sizeof(long) * (cnt+2));
-    for (long i = 0; i < cnt; i++) {
-        nums[(int) i] = i;
-    }
-    nums[cnt - 1] = LONG_MAX;
-    nums[cnt] = LONG_MIN;
-    return nums;
-}
- 
-tree* create_big_tree(long* nums, int cnt) {
-    tree* t = tree_new();
-    for (int i = 0; i <= cnt; i++) {
-        tree_insert(t, nums[i]);
-    }
-    for (int i = 0; i <= cnt; i++) {
-        assert(tree_search(t, nums[i])->d == nums[i]);
-    }
-    node_check_tree(_get_root(t));
-    return t;
-}
-
 void test_big_tree() {
     printf("testing big tree\n");
     int cnt = 5000;
@@ -496,36 +475,6 @@ void test__remove_complex() {
     _tree_free(t);
 }
 
-void test_many_internal(int cnt) {
-    long* nums = make_nums(cnt);
-
-    // test even removal
-    tree* t = create_big_tree(nums, cnt);
-    node_check_tree(_get_root(t));
-    for (long i = 0; i <= cnt - 2; i += 2) {
-        assert(tree_remove(t, i));
-        node_check_tree(_get_root(t));
-    }
-    _tree_free(t);
-
-    // test odd removal
-    t = create_big_tree(nums, cnt);
-    node_check_tree(_get_root(t));
-    for (long i = 1; i <= cnt - 2; i += 2) {
-        assert(tree_remove(t, i));
-        node_check_tree(_get_root(t));
-    }
-    _tree_free(t);
-    free(nums);
-}
-
-void test_many() {
-    printf("testing many inserts/deletes\n");
-    for (int i = 1; i <= 999; i++) {
-        test_many_internal(i);
-    }
-}
-
 int main() {
 
     test__update_bf_insert();
@@ -548,8 +497,6 @@ int main() {
     test__remove_right_no_left();
 
     test__remove_complex();
-
-    test_many();
 
     return 0;
 }
