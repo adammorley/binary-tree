@@ -5,10 +5,9 @@
 #include <stdlib.h>
 
 #include "../log/log.h"
-#include "../tree-node/node.h"
+#include "../tree-node/tree_node.h"
 
 #include "tree.h"
-
 #include "test-support.h"
 
 void test_many_internal(int cnt) {
@@ -16,19 +15,19 @@ void test_many_internal(int cnt) {
 
     // test even removal
     tree* t = create_big_tree(nums, cnt);
-    node_check_tree(_get_root(t));
+    tree_node_check(_get_root(t));
     for (long i = 0; i <= cnt - 2; i += 2) {
         assert(tree_remove(t, i));
-        node_check_tree(_get_root(t));
+        tree_node_check(_get_root(t));
     }
     _tree_free(t);
 
     // test odd removal
     t = create_big_tree(nums, cnt);
-    node_check_tree(_get_root(t));
+    tree_node_check(_get_root(t));
     for (long i = 1; i <= cnt - 2; i += 2) {
         assert(tree_remove(t, i));
-        node_check_tree(_get_root(t));
+        tree_node_check(_get_root(t));
     }
     _tree_free(t);
     free(nums);

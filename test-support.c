@@ -2,6 +2,8 @@
 #include <limits.h>
 #include <stdlib.h>
 
+#include "../tree-node/tree_node.h"
+
 #include "tree.h"
 
 long* make_nums(int cnt) {
@@ -22,6 +24,6 @@ tree* create_big_tree(long* nums, int cnt) {
     for (int i = 0; i <= cnt; i++) {
         assert(tree_search(t, nums[i])->d == nums[i]);
     }
-    node_check_tree(_get_root(t));
+    tree_node_check(_get_root(t));
     return t;
 }

@@ -5,18 +5,18 @@
 #include <stdlib.h>
 
 #include "../log/log.h"
-#include "../tree-node/node.h"
+#include "../tree-node/tree_node.h"
 
 #include "tree.h"
 // tree internal function prototypes
 #include "static.h"
 
-STATIC node* _get_root(tree* t) {
+STATIC tree_node* _get_root(tree* t) {
     Assert(t != NULL, __func__, "tree is null");
     return t->r;
 }
 
-STATIC node* _up_to_root(node* n) {
+STATIC tree_node* _up_to_root(tree_node* n) {
     if (n == NULL) return NULL;
     while (n->p != NULL) {
         n = n->p;
@@ -26,8 +26,8 @@ STATIC node* _up_to_root(node* n) {
 }
 
 void tree_insert(tree* t, long d) {
-    node* n = _get_root(t);
-    node* c = node_new(d);
+    tree_node* n = _get_root(t);
+    tree_node* c = tree_node_new(d);
     if (n == NULL) {
         t->r = c;
         return;
@@ -44,7 +44,7 @@ tree* tree_new() {
     return t;
 }
 
-static void _node_print(node* n) {
+static void _node_print(tree_node* n) {
     if (n != NULL) {
         printf("n: %lu, p: %lu, d: %li, l: %lu, r: %lu, b: %li\n", (unsigned long) n, (unsigned long) n->p, n->d, (unsigned long) n->l, (unsigned long) n->r, n->b);
         _node_print(n->l);
@@ -53,7 +53,7 @@ static void _node_print(node* n) {
 }
 
 void tree_print(tree* t) {
-    node* n = _get_root(t);
+    tree_node* n = _get_root(t);
     printf("r: %lu\n", (unsigned long) n);
     _node_print(n);
     printf("\n");
@@ -61,7 +61,7 @@ void tree_print(tree* t) {
 
 
 bool tree_remove(tree* t, long d) {
-    node* n = _get_root(t);
+    tree_node* n = _get_root(t);
     if (n == NULL) return false;
     if (n->d == d && n->l == NULL && n->r == NULL) {
         t->r = NULL;
@@ -71,7 +71,7 @@ bool tree_remove(tree* t, long d) {
     n = tree_search(t, d);
     if (n == NULL) return false;
 
-    node* r;
+    tree_node* r;
     if (n->r == NULL && n->l == NULL) {
         r = _remove_no_children(n);
     } else if (n->r == NULL) {
@@ -88,24 +88,24 @@ bool tree_remove(tree* t, long d) {
     return true;
 }
 
-static node* _tree_search(node* n, long d) {
+static tree_node* _tree_search(tree_node* n, long d) {
     if (n->d == d) return n;
     if (d < n->d && n->l != NULL) return _tree_search(n->l, d);
     if (d > n->d && n->r != NULL) return _tree_search(n->r, d);
     return NULL;
 }
     
-node* tree_search(tree* t, long d) {
-    node* n = _get_root(t);
+tree_node* tree_search(tree* t, long d) {
+    tree_node* n = _get_root(t);
     if (n == NULL) return NULL;
     LOG_DEBUG("searching for: %li", __func__, d);
     return _tree_search(n, d);
 }
 
 void _tree_free(tree* t) {
-    node* n = _get_root(t);
+    tree_node* n = _get_root(t);
     if (n == NULL) return;
-    node_free_recurse(n);
+    tree_node_free_recurse(n);
     free(t);
 }
 
@@ -118,7 +118,7 @@ void _tree_free(tree* t) {
     so the caller can update the root pointer
     if needed
 */
-STATIC node* _insert_node(node* n, node* c) {
+STATIC tree_node* _insert_node(tree_node* n, tree_node* c) {
     if (c->d < n->d && n->l != NULL) return _insert_node(n->l, c);
     if (c->d > n->d && n->r != NULL) return _insert_node(n->r, c);
     LOG_DEBUG("inserting: %li", __func__, c->d);
@@ -133,9 +133,9 @@ STATIC node* _insert_node(node* n, node* c) {
     update its parent's balance factor, retracing up the tree
     rebalance if needed.
 */
-STATIC node* _retrace_insert(node* c) {
+STATIC tree_node* _retrace_insert(tree_node* c) {
     LOG_DEBUG("retracing insert at %li", __func__, c->d);
-    node* p = c;
+    tree_node* p = c;
     /*
         note break cases:
             if rebalance led to root page
@@ -154,7 +154,7 @@ STATIC node* _retrace_insert(node* c) {
     return _up_to_root(p);
 }
 
-STATIC void _update_bf_insert(node* p, node* c) {
+STATIC void _update_bf_insert(tree_node* p, tree_node* c) {
     if (p->l == c) p->b -= 1;
     else if (p->r == c) p->b += 1;
     else Assert(p->l == NULL && p->r == NULL, __func__, "unhandled parent/child relationship");
@@ -165,7 +165,7 @@ STATIC void _update_bf_insert(node* p, node* c) {
 /* 
     node n just had a child removed, retrace and rebalance
 */
-STATIC node* _retrace_remove(node* n) {
+STATIC tree_node* _retrace_remove(tree_node* n) {
     LOG_DEBUG("retracing removal from %li", __func__, n->d);
     /*
         note break cases:
@@ -195,7 +195,7 @@ STATIC node* _retrace_remove(node* n) {
 /*
     replace node c with x at p
 */
-STATIC void _remove_splice(node* p, node* c, node* x) {
+STATIC void _remove_splice(tree_node* p, tree_node* c, tree_node* x) {
     if (x != NULL) x->p = p;
     if (p == NULL) return;
     if (p->l == c) {
@@ -211,7 +211,7 @@ STATIC void _remove_splice(node* p, node* c, node* x) {
     level of the tree if rebalanced
     so the caller can update.
 */
-STATIC node* _rebalance(node* n) {
+STATIC tree_node* _rebalance(tree_node* n) {
     LOG_DEBUG("rebalancing %li", __func__, n->d);
     if (n->b == 2) { // right heavy
         if (n->r->b == 0 || n->r->b == 1) { // right right
@@ -238,9 +238,9 @@ STATIC node* _rebalance(node* n) {
     node has no children, can simply remove and retrace
     only need to retrace if tree height decreased
 */
-STATIC node* _remove_no_children(node* c) {
+STATIC tree_node* _remove_no_children(tree_node* c) {
     LOG_DEBUG("removing %li", __func__, c->d);
-    node* p = c->p;
+    tree_node* p = c->p;
     if (p == NULL) return NULL; // root page
     if (p->r == c) p->b -= 1;
     else p->b += 1;
@@ -263,9 +263,9 @@ STATIC node* _remove_no_children(node* c) {
   3   15
 
 */
-STATIC node* _remove_no_right_children(node* n) {
-    node* p = n->p;
-    node* x = n->l;
+STATIC tree_node* _remove_no_right_children(tree_node* n) {
+    tree_node* p = n->p;
+    tree_node* x = n->l;
     LOG_DEBUG("removing %li and replacing with %li", __func__, n->d, x->d);
     _remove_splice(p, n, x);
     if (p == NULL && x->p == NULL) return x; // root page
@@ -293,9 +293,9 @@ STATIC node* _remove_no_right_children(node* n) {
            \
            40
 */
-STATIC node* _remove_right_no_left(node* n) {
-    node* p = n->p;
-    node* x = n->r;
+STATIC tree_node* _remove_right_no_left(tree_node* n) {
+    tree_node* p = n->p;
+    tree_node* x = n->r;
     LOG_DEBUG("removing %li and replacing with %li", __func__, n->d, x->d);
     x->l = n->l;
     x->b = n->b - 1;
@@ -334,9 +334,9 @@ STATIC node* _remove_right_no_left(node* n) {
          /  \
         28  40
 */
-STATIC node* _remove_complex(node* n) {
+STATIC tree_node* _remove_complex(tree_node* n) {
     // step down to the right node
-    node* c = n->r;
+    tree_node* c = n->r;
     // find the unbusy left node
     while (c->l != NULL) {
         c = c->l;
@@ -348,7 +348,7 @@ STATIC node* _remove_complex(node* n) {
     else c->p->l = NULL;
 
     // track the old parent for c, and note the height shrink
-    node* p = c->p;
+    tree_node* p = c->p;
     p->b += 1;
 
     // hook it into the right place
@@ -397,9 +397,9 @@ b=[0,1] X   t2
        / \
       t0 t1
 */
-STATIC node* _right_right(node* X) {
+STATIC tree_node* _right_right(tree_node* X) {
     LOG_DEBUG("RR rebalance of %li", __func__, X->d);
-    node* Z = X->r;
+    tree_node* Z = X->r;
     Assert(Z->b != -1, __func__, "right left in right right case");
     Z->p = X->p;
     X->p = Z;
@@ -438,11 +438,11 @@ STATIC node* _right_right(node* X) {
         / \  / \
       t0 t1 t2 t3
 */
-STATIC node* _right_left(node* X) {
+STATIC tree_node* _right_left(tree_node* X) {
     LOG_DEBUG("RL rebalance of %li", __func__, X->d);
-    node* Z = X->r;
+    tree_node* Z = X->r;
     Assert(Z->b == -1, __func__, "right right in right left case");
-    node* Y = Z->l;
+    tree_node* Y = Z->l;
     Y->p = X->p;
     Z->p = Y;
     X->p = Y;
@@ -488,9 +488,9 @@ b=[-1,0] Z   t2
          / \
         t1  t2
 */
-STATIC node* _left_left(node* X) {
+STATIC tree_node* _left_left(tree_node* X) {
     LOG_DEBUG("LL rebalance of %li", __func__, X->d);
-    node* Z = X->l;
+    tree_node* Z = X->l;
     Assert(Z->b != 1, __func__, "left right case in left left");
     Z->p = X->p;
     X->p = Z;
@@ -529,11 +529,11 @@ b=0,1 Z   X b=-1,0
      / \ / \
    t0 t1 t2 t3
 */
-STATIC node* _left_right(node* X) {
+STATIC tree_node* _left_right(tree_node* X) {
     LOG_DEBUG("LR rebalance of %li", __func__, X->d);
-    node* Z = X->l;
+    tree_node* Z = X->l;
     Assert(Z->b == 1, __func__, "left left case in left right");
-    node* Y = Z->r;
+    tree_node* Y = Z->r;
     Y->p = X->p;
     Z->p = Y;
     X->p = Y;
