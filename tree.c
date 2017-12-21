@@ -11,20 +11,6 @@
 // tree internal function prototypes
 #include "static.h"
 
-STATIC tree_node* _get_root(tree* t) {
-    Assert(t != NULL, __func__, "tree is null");
-    return t->r;
-}
-
-STATIC tree_node* _up_to_root(tree_node* n) {
-    if (n == NULL) return NULL;
-    while (n->p != NULL) {
-        n = n->p;
-    }
-    LOG_DEBUG("new root: %li", __func__, n->d);
-    return n;
-}
-
 void tree_insert(tree* t, long d) {
     tree_node* n = _get_root(t);
     tree_node* c = tree_node_new(d);
@@ -58,7 +44,6 @@ void tree_print(tree* t) {
     _node_print(n);
     printf("\n");
 }
-
 
 bool tree_remove(tree* t, long d) {
     tree_node* n = _get_root(t);
@@ -143,7 +128,6 @@ STATIC tree_node* _retrace_insert(tree_node* c) {
     */
     while (true) {
         p = p->p;
-        Assert(p != NULL, __func__, "p null");
         _update_bf_insert(p, c);
         if (p->b == 2 || p->b == -2) p = _rebalance(p);
         if (p->p == NULL) break;
@@ -155,6 +139,7 @@ STATIC tree_node* _retrace_insert(tree_node* c) {
 }
 
 STATIC void _update_bf_insert(tree_node* p, tree_node* c) {
+    Assert(p != NULL, __func__, "p null");
     if (p->l == c) p->b -= 1;
     else if (p->r == c) p->b += 1;
     else Assert(p->l == NULL && p->r == NULL, __func__, "unhandled parent/child relationship");
@@ -169,13 +154,12 @@ STATIC tree_node* _retrace_remove(tree_node* n) {
     LOG_DEBUG("retracing removal from %li", __func__, n->d);
     /*
         note break cases:
-            if node removal was absorbed at n
-            if node doesn't have parent (root node)
+            if node removal was absorbed at n (combined with case immediately below)
             if after rebalance, removal was absorbed
+            if node doesn't have parent (root node)
             otherwise, update balance factors, check asserts and loop
     */
     while (true) {
-        if (n->b == 1 || n->b == -1) break;
         if (n->b == 2 || n->b == -2) n = _rebalance(n);
         Assert(n->b < 2 && n->b > -2, __func__, "node %li balance factor out of range after rebalance", n->d);
         if (n->b == 1 || n->b == -1) break;
@@ -225,7 +209,7 @@ STATIC tree_node* _rebalance(tree_node* n) {
         } else { // left right, n->l->b == 1
             n = _left_right(n);
         }
-    } else Assert(false, __func__, "unhandled balance factor");
+    } else Assert(false, __func__, "asked to rebalance, but bf != 2");
     LOG_DEBUG("rebalanced to %li", __func__, n->d);
     if (n->p == NULL) return n;
     else if (n->p->d < n->d) n->p->r = n;
@@ -351,7 +335,7 @@ STATIC tree_node* _remove_complex(tree_node* n) {
     tree_node* p = c->p;
     p->b += 1;
 
-    // hook it into the right place
+    // hook c into the right place
     c->b = n->b;
     _remove_splice(n->p, n, c);
 
@@ -561,4 +545,21 @@ STATIC tree_node* _left_right(tree_node* X) {
         Y->b = 0;
     } else Assert(false, __func__, "unhandled balance factor for Y in left right case");
     return Y;
+}
+
+/*
+    some helper functions
+*/
+STATIC tree_node* _get_root(tree* t) {
+    Assert(t != NULL, __func__, "tree is null");
+    return t->r;
+}
+
+STATIC tree_node* _up_to_root(tree_node* n) {
+    if (n == NULL) return NULL;
+    while (n->p != NULL) {
+        n = n->p;
+    }
+    LOG_DEBUG("root: %li", __func__, n->d);
+    return n;
 }

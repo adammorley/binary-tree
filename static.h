@@ -8,6 +8,7 @@
 #define STATIC static
 #endif
 
+// comments in tree.c
 #ifdef _UNIT_TEST
 STATIC void Assert(bool condition, const char* func, const char* format, ...);
 
