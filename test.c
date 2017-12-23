@@ -260,6 +260,43 @@ void test__insert_node() {
     tree_node_free_recurse(x);
 }
 
+void test_double_insert() {
+    printf("testing double insert\n");
+    tree* t = tree_new();
+    tree_insert(t, 1);
+    assert(tree_search(t, 1));
+    tree_insert(t, 1);
+    assert(tree_search(t, 1));
+    tree_remove(t, 1);
+    assert(tree_search(t, 1));
+    tree_remove(t, 1);
+    assert(! tree_search(t, 1));
+    _tree_free(t);
+}
+
+void test_double_remove() {
+    printf("testing double remove\n");
+    tree* t = tree_new();
+    tree_insert(t, 1);
+    tree_insert(t, 1);
+    tree_insert(t, 2);
+    tree_insert(t, 2);
+    tree_insert(t, 3);
+    assert(tree_search(t, 1));
+    assert(tree_search(t, 2));
+    assert(tree_remove(t, 2));
+    assert(tree_search(t, 2));
+    assert(tree_search(t, 3));
+    assert(tree_remove(t, 1));
+    assert(tree_search(t, 1));
+    assert(tree_search(t, 3));
+    assert(tree_remove(t, 1));
+    assert(!tree_search(t, 1));
+    assert(tree_search(t, 2));
+    assert(tree_search(t, 3));
+    _tree_free(t);
+}
+
 void test_big_tree() {
     printf("testing big tree\n");
     int cnt = 5000;
@@ -485,6 +522,10 @@ int main() {
     test_retracing();
 
     test__insert_node();
+
+    test_double_insert();
+
+    test_double_remove();
 
     test_big_tree();
 

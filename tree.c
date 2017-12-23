@@ -13,13 +13,19 @@
 
 void tree_insert(tree* t, long d) {
     tree_node* n = _get_root(t);
-    tree_node* c = tree_node_new(d);
+    tree_node* x;
     if (n == NULL) {
-        t->r = c;
+        x = tree_node_new(d);
+        t->r = x;
         return;
     }
-    if (n->d == d) return; // noop
-    n = _insert_node(n, c);
+    x = tree_search(t, d);
+    if (x) { // node already inserted, increment counter
+        x->c += 1;
+        return;
+    }
+    x = tree_node_new(d);
+    n = _insert_node(n, x);
     if (n->p == NULL) t->r = n;
 }
 
@@ -32,7 +38,7 @@ tree* tree_new() {
 
 static void _node_print(tree_node* n) {
     if (n != NULL) {
-        printf("n: %lu, p: %lu, d: %li, l: %lu, r: %lu, b: %li\n", (unsigned long) n, (unsigned long) n->p, n->d, (unsigned long) n->l, (unsigned long) n->r, n->b);
+        printf("n: %lu, p: %lu, d: %li, c: %u l: %lu, r: %lu, b: %hd\n", (unsigned long) n, (unsigned long) n->p, n->d, n->c, (unsigned long) n->l, (unsigned long) n->r, n->b);
         _node_print(n->l);
         _node_print(n->r);
     }
@@ -48,13 +54,17 @@ void tree_print(tree* t) {
 bool tree_remove(tree* t, long d) {
     tree_node* n = _get_root(t);
     if (n == NULL) return false;
-    if (n->d == d && n->l == NULL && n->r == NULL) {
+    if (n->d == d && n->l == NULL && n->r == NULL && n->c == 1) {
         t->r = NULL;
         free(n);
         return true;
     }
     n = tree_search(t, d);
     if (n == NULL) return false;
+    if (n->c > 1) {
+        n->c -= 1;
+        return true;
+    }
 
     tree_node* r;
     if (n->r == NULL && n->l == NULL) {
