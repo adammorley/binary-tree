@@ -10,8 +10,6 @@
 
 // comments in tree.c
 #ifdef _UNIT_TEST
-STATIC void Assert(bool condition, const char* func, const char* format, ...);
-
 STATIC tree_node* _get_root(tree* t);
 STATIC tree_node* _up_to_root(tree_node* n);
 
