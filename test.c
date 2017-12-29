@@ -5,6 +5,7 @@
 #include <stdlib.h>
 
 #include "../log/log.h"
+#include "../queue/queue.h"
 #include "../tree-node/tree_node.h"
 
 #include "tree.h"
@@ -512,6 +513,24 @@ void test__remove_complex() {
     _tree_free(t);
 }
 
+void test_tree_inorder() {
+    printf("testing tree_inorder\n");
+    tree* t = tree_new();
+    for (long i = 0; i <= 50; i++) {
+        tree_insert(t, i);
+    }
+    queue* q = queue_new();
+    tree_inorder(t, q);
+    tree_node* p;
+    for (long i = 0; i <= 50; i++) {
+        p = (tree_node*) q_dequeue(q);
+        assert(p->d == i);
+    }
+    p = (tree_node*) q_dequeue(q);
+    assert(p == NULL);
+    free(q);
+}
+
 int main() {
 
     test__update_bf_insert();
@@ -538,6 +557,8 @@ int main() {
     test__remove_right_no_left();
 
     test__remove_complex();
+
+    test_tree_inorder();
 
     return 0;
 }

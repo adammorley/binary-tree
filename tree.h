@@ -1,4 +1,6 @@
 #include <stdbool.h>
+
+#include "../queue/queue.h"
 #include "../tree-node/tree_node.h"
 
 #ifndef TREE_H
@@ -8,6 +10,11 @@ typedef struct tree tree;
 struct tree {
     tree_node* r;
 };
+
+/*
+    in-order on the tree, returns queue of nodes
+*/
+void tree_inorder(tree* t, queue* q);
 
 /*
     insert a data into a tree

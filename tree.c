@@ -5,11 +5,18 @@
 #include <stdlib.h>
 
 #include "../log/log.h"
+#include "../queue/queue.h"
 #include "../tree-node/tree_node.h"
 
 #include "tree.h"
 // tree internal function prototypes
 #include "static.h"
+
+void tree_inorder(tree* t, queue* q) {
+    tree_node* r = _get_root(t);
+    if (r == NULL) return;
+    return tree_node_inorder(r, q);
+}
 
 void tree_insert(tree* t, long d) {
     tree_node* n = _get_root(t);
