@@ -8,7 +8,12 @@
 
 typedef struct tree tree;
 struct tree {
-    tree_node* r;
+    tree_node* r; // root node
+    /*
+        size.  note that this is the number of distinct
+        elements in the tree, not the total count
+    */
+    unsigned long s;
 };
 
 /*
@@ -40,6 +45,11 @@ bool tree_remove(tree* t, long d);
     search for a value, returns the node
 */
 tree_node* tree_search(tree* t, long d);
+
+/*
+    get the size of the tree
+*/
+unsigned long tree_size(tree* t);
 
 /*
     free all the nodes in the tree, and the tree

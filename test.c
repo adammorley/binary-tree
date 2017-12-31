@@ -266,12 +266,16 @@ void test_double_insert() {
     tree* t = tree_new();
     tree_insert(t, 1);
     assert(tree_search(t, 1));
+    assert(tree_size(t) == 1);
     tree_insert(t, 1);
     assert(tree_search(t, 1));
+    assert(tree_size(t) == 1);
     tree_remove(t, 1);
     assert(tree_search(t, 1));
+    assert(tree_size(t) == 1);
     tree_remove(t, 1);
     assert(! tree_search(t, 1));
+    assert(tree_size(t) == 0);
     _tree_free(t);
 }
 
@@ -283,6 +287,7 @@ void test_double_remove() {
     tree_insert(t, 2);
     tree_insert(t, 2);
     tree_insert(t, 3);
+    assert(tree_size(t) == 3);
     assert(tree_search(t, 1));
     assert(tree_search(t, 2));
     assert(tree_remove(t, 2));
@@ -291,8 +296,10 @@ void test_double_remove() {
     assert(tree_remove(t, 1));
     assert(tree_search(t, 1));
     assert(tree_search(t, 3));
+    assert(tree_size(t) == 3);
     assert(tree_remove(t, 1));
     assert(!tree_search(t, 1));
+    assert(tree_size(t) == 2);
     assert(tree_search(t, 2));
     assert(tree_search(t, 3));
     _tree_free(t);

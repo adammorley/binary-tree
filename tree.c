@@ -24,6 +24,7 @@ void tree_insert(tree* t, long d) {
     if (n == NULL) {
         x = tree_node_new(d);
         t->r = x;
+        t->s += 1;
         return;
     }
     x = tree_search(t, d);
@@ -34,12 +35,14 @@ void tree_insert(tree* t, long d) {
     x = tree_node_new(d);
     n = _insert_node(n, x);
     if (n->p == NULL) t->r = n;
+    t->s += 1;
 }
 
 tree* tree_new() {
     tree* t = malloc(sizeof(tree));
     Assert(t != NULL, __func__, "malloc error");
     t->r = NULL;
+    t->s = 0;
     return t;
 }
 
@@ -62,8 +65,10 @@ bool tree_remove(tree* t, long d) {
     tree_node* n = _get_root(t);
     if (n == NULL) return false;
     if (n->d == d && n->l == NULL && n->r == NULL && n->c == 1) {
+        Assert(t->s == 1, __func__, "root deletion, but size wrong, %lu", t->s);
         t->r = NULL;
         free(n);
+        t->s = 0;
         return true;
     }
     n = tree_search(t, d);
@@ -87,6 +92,7 @@ bool tree_remove(tree* t, long d) {
     if (r->p != NULL) Assert(false, __func__, "root parent not NULL: %li", r->d);
     t->r = r;
     free(n);
+    t->s -= 1;
     return true;
 }
 
@@ -102,6 +108,11 @@ tree_node* tree_search(tree* t, long d) {
     if (n == NULL) return NULL;
     LOG_DEBUG("searching for: %li", __func__, d);
     return _tree_search(n, d);
+}
+
+unsigned long tree_size(tree* t) {
+    Assert(t != NULL, __func__, "t is null");
+    return t->s;
 }
 
 void _tree_free(tree* t) {

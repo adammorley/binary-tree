@@ -20,6 +20,7 @@ tree* create_big_tree(long* nums, int cnt) {
     tree* t = tree_new();
     for (int i = 0; i <= cnt; i++) {
         tree_insert(t, nums[i]);
+        assert(tree_size(t) == i + 1);
     }
     for (int i = 0; i <= cnt; i++) {
         assert(tree_search(t, nums[i])->d == nums[i]);
