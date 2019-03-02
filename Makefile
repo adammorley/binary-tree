@@ -1,4 +1,4 @@
-CC=/usr/local/Cellar/llvm/5.0.0/bin/clang
+CC=clang
 CFLAGS=-I. -g
 DEPS=../log/log.c ../queue/queue.c ../tree-node/tree_node.c
 
