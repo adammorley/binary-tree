@@ -19,7 +19,7 @@ struct tree {
 /*
     in-order on the tree, returns queue of nodes
 */
-void tree_inorder(tree* t, queue* q);
+queue* tree_inorder(tree* t);
 
 /*
     insert a data into a tree

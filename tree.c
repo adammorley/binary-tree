@@ -12,10 +12,12 @@
 // tree internal function prototypes
 #include "static.h"
 
-void tree_inorder(tree* t, queue* q) {
+queue* tree_inorder(tree* t) {
     tree_node* r = _get_root(t);
-    if (r == NULL) return;
-    return tree_node_inorder(r, q);
+    if (r == NULL) return NULL;
+    queue* q = queue_new();
+    tree_node_inorder(r, q);
+    return q;
 }
 
 void tree_insert(tree* t, long d) {

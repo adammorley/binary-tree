@@ -526,8 +526,7 @@ void test_tree_inorder() {
     for (long i = 0; i <= 50; i++) {
         tree_insert(t, i);
     }
-    queue* q = queue_new();
-    tree_inorder(t, q);
+    queue* q = tree_inorder(t);
     tree_node* p;
     for (long i = 0; i <= 50; i++) {
         p = (tree_node*) q_dequeue(q);
